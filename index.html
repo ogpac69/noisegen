@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noise Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --surface: rgba(255, 255, 255, 0.05);
+      --surface-hover: rgba(255, 255, 255, 0.1);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --white-color: #a78bfa;
+      --pink-color: #f472b6;
+      --brown-color: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0c0e14;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* Background gradient orbs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      z-index: 0;
+      pointer-events: none;
+    }
+    body::before {
+      width: 600px; height: 600px;
+      background: #6366f1;
+      top: -200px; left: -100px;
+    }
+    body::after {
+      width: 500px; height: 500px;
+      background: #ec4899;
+      bottom: -200px; right: -100px;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 520px;
+      padding: 20px;
+    }
+
+    .card {
+      background: rgba(15, 18, 30, 0.85);
+      backdrop-filter: blur(40px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #6366f1, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+    .header p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* Visualization Canvas */
+    .viz-container {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    #vizCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .viz-label {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      pointer-events: none;
+    }
+    .viz-time {
+      position: absolute;
+      bottom: 10px;
+      left: 14px;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+    }
+
+    /* Noise Type Selector */
+    .noise-types {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .noise-btn {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      color: var(--text-dim);
+      outline: none;
+    }
+    .noise-btn:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255,255,255,0.15);
+    }
+    .noise-btn.active {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--text);
+      box-shadow: 0 0 20px var(--accent-glow), inset 0 0 20px rgba(99,102,241,0.05);
+    }
+    .noise-btn[data-type="white"].active {
+      border-color: var(--white-color);
+      background: rgba(167, 139, 250, 0.1);
+      box-shadow: 0 0 20px rgba(167,139,250,0.3);
+    }
+    .noise-btn[data-type="pink"].active {
+      border-color: var(--pink-color);
+      background: rgba(244, 114, 182, 0.1);
+      box-shadow: 0 0 20px rgba(244,114,182,0.3);
+    }
+    .noise-btn[data-type="brown"].active {
+      border-color: var(--brown-color);
+      background: rgba(217, 119, 6, 0.1);
+      box-shadow: 0 0 20px rgba(217,119,6,0.3);
+    }
+    .noise-btn .icon {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .noise-btn .label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .noise-btn .desc {
+      font-size: 0.6rem;
+      margin-top: 2px;
+      opacity: 0.6;
+    }
+
+    /* Sliders */
+    .control-group {
+      margin-bottom: 20px;
+    }
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .control-label span:first-child {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .control-value {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+      outline: none;
+      cursor: pointer;
+      position: relative;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid #1a1d2e;
+      box-shadow: 0 0 10px var(--accent-glow);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid #1a1d2e;
+      box-shadow: 0 0 10px var(--accent-glow);
+      cursor: pointer;
+    }
+
+    /* Play Button */
+    .play-section {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 24px;
+    }
+    #playBtn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: 0.03em;
+      outline: none;
+    }
+    #playBtn.stopped {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    #playBtn.stopped:hover {
+      box-shadow: 0 6px 30px rgba(99,102,241,0.6);
+      transform: translateY(-1px);
+    }
+    #playBtn.playing {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    #playBtn.playing:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+    #playBtn .btn-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Timer */
+    .timer-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #timerSelect {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      outline: none;
+      min-width: 80px;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    #timerSelect option {
+      background: #1a1d2e;
+    }
+    .timer-icon {
+      font-size: 1rem;
+      color: var(--text-dim);
+    }
+    #timerDisplay {
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .footer p {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      opacity: 0.6;
+    }
+    .shortcut-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    kbd {
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 0.6rem;
+      font-family: 'Inter', sans-serif;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    /* Animations */
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+      50% { box-shadow: 0 0 35px var(--accent-glow); }
+    }
+    #playBtn.playing {
+      animation: none;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      .app-container { padding: 12px; }
+      .card { padding: 20px; border-radius: 20px; }
+      .viz-container { height: 100px; }
+      .noise-btn { padding: 10px 6px; }
+    }
+
+    /* Slider track fill effect - done via JS with CSS variable */
+    input[type="range"] {
+      --fill: 50%;
+      background: linear-gradient(to right, rgba(99,102,241,0.4) 0%, rgba(99,102,241,0.4) var(--fill), rgba(255,255,255,0.08) var(--fill), rgba(255,255,255,0.08) 100%);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .status-dot.active {
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    .status-dot.inactive {
+      background: #475569;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="card">
+      <!-- Header -->
+      <div class="header">
+        <h1>Noise Generator</h1>
+        <p>Ambient sound for focus, sleep & relaxation</p>
+      </div>
+
+      <!-- Visualization -->
+      <div class="viz-container">
+        <canvas id="vizCanvas"></canvas>
+        <span class="viz-label"><span class="status-dot inactive" id="statusDot"></span>&ensp;Waveform</span>
+        <span class="viz-time" id="elapsedTime">00:00</span>
+      </div>
+
+      <!-- Noise Type Selector -->
+      <div class="noise-types">
+        <button class="noise-btn active" data-type="white">
+          <span class="icon">〰️</span>
+          <span class="label">White</span>
+          <span class="desc">All frequencies</span>
+        </button>
+        <button class="noise-btn" data-type="pink">
+          <span class="icon">🌸</span>
+          <span class="label">Pink</span>
+          <span class="desc">-3 dB/octave</span>
+        </button>
+        <button class="noise-btn" data-type="brown">
+          <span class="icon">🍂</span>
+          <span class="label">Brown</span>
+          <span class="desc">Deep bass</span>
+        </button>
+      </div>
+
+      <!-- Volume Control -->
+      <div class="control-group">
+        <div class="control-label">
+          <span>🔊 Volume</span>
+          <span class="control-value" id="volumeValue">50%</span>
+        </div>
+        <input type="range" id="volumeSlider" min="0" max="100" value="50" step="1">
+      </div>
+
+      <!-- Tone Control -->
+      <div class="control-group">
+        <div class="control-label">
+          <span>🎛️ Tone (Low-pass)</span>
+          <span class="control-value" id="toneValue">20,000 Hz</span>
+        </div>
+        <input type="range" id="toneSlider" min="100" max="20000" value="20000" step="1">
+      </div>
+
+      <!-- Play Button & Timer -->
+      <div class="play-section">
+        <button id="playBtn" class="stopped">
+          <span class="btn-icon" id="playIcon">▶</span>
+          <span id="playLabel">Play</span>
+        </button>
+        <div class="timer-section">
+          <span class="timer-icon">⏱</span>
+          <select id="timerSelect">
+            <option value="0">Off</option>
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
+            <option value="60">1 hr</option>
+            <option value="120">2 hr</option>
+          </select>
+          <span id="timerDisplay"></span>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>
+          <span class="shortcut-hint"><kbd>Space</kbd> Play/Pause &ensp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Noise type</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // AUDIO WORKLET PROCESSOR CODE (embedded as string for Blob URL)
+    // ============================================================
+    const workletProcessorCode = `
+      class NoiseProcessor extends AudioWorkletProcessor {
+        constructor() {
+          super();
+          // Current noise type: 0=white, 1=pink, 2=brown
+          this.noiseType = 0;
+          // Target type for crossfading
+          this.targetType = 0;
+          // Crossfade progress (0 = fully current, 1 = fully target)
+          this.crossfade = 0;
+          this.crossfadeRate = 0; // per-sample increment
+          this.isCrossfading = false;
+
+          // ---- Pink noise state (Paul Kellet's refined method) ----
+          // Uses 7 state variables to approximate -3 dB/octave rolloff
+          this.b0 = 0; this.b1 = 0; this.b2 = 0;
+          this.b3 = 0; this.b4 = 0; this.b5 = 0; this.b6 = 0;
+
+          // Duplicate pink state for crossfade target
+          this.tb0 = 0; this.tb1 = 0; this.tb2 = 0;
+          this.tb3 = 0; this.tb4 = 0; this.tb5 = 0; this.tb6 = 0;
+
+          // ---- Brown noise state ----
+          // Brown noise is the integral of white noise (random walk)
+          // We use a leaky integrator to prevent DC drift
+          this.brownState = 0;
+          this.tBrownState = 0;
+
+          // Listen for messages from main thread
+          this.port.onmessage = (e) => {
+            if (e.data.type === 'setNoiseType') {
+              const newType = e.data.value;
+              if (newType !== this.noiseType && !this.isCrossfading) {
+                this.targetType = newType;
+                this.crossfade = 0;
+                // Crossfade over ~50ms at 48kHz = ~2400 samples
+                this.crossfadeRate = 1.0 / (sampleRate * 0.05);
+                this.isCrossfading = true;
+                // Reset target noise states for clean start
+                this.tb0=0;this.tb1=0;this.tb2=0;this.tb3=0;this.tb4=0;this.tb5=0;this.tb6=0;
+                this.tBrownState = this.brownState;
+              } else if (!this.isCrossfading) {
+                this.noiseType = newType;
+              }
+            }
+          };
+        }
+
+        /**
+         * Generate a single white noise sample
+         * Uniformly distributed random value in [-1, 1]
+         */
+        generateWhite() {
+          return Math.random() * 2 - 1;
+        }
+
+        /**
+         * Generate a single pink noise sample using Paul Kellet's method
+         * This filters white noise to achieve approximately -3 dB/octave rolloff
+         * The coefficients approximate the ideal pink spectrum using 6 first-order filters
+         * @param {boolean} useTarget - use target state variables for crossfading
+         */
+        generatePink(useTarget) {
+          const white = this.generateWhite();
+          if (useTarget) {
+            // Each line is a leaky integrator with different time constants
+            // Together they create the -3dB/octave (1/f) spectral shape
+            this.tb0 = 0.99886 * this.tb0 + white * 0.0555179;
+            this.tb1 = 0.99332 * this.tb1 + white * 0.0750759;
+            this.tb2 = 0.96900 * this.tb2 + white * 0.1538520;
+            this.tb3 = 0.86650 * this.tb3 + white * 0.3104856;
+            this.tb4 = 0.55000 * this.tb4 + white * 0.5329522;
+            this.tb5 = -0.7616 * this.tb5 - white * 0.0168980;
+            const pink = this.tb0 + this.tb1 + this.tb2 + this.tb3 + this.tb4 + this.tb5 + this.tb6 + white * 0.5362;
+            this.tb6 = white * 0.115926;
+            return pink * 0.11; // Normalize to roughly [-1, 1]
+          } else {
+            this.b0 = 0.99886 * this.b0 + white * 0.0555179;
+            this.b1 = 0.99332 * this.b1 + white * 0.0750759;
+            this.b2 = 0.96900 * this.b2 + white * 0.1538520;
+            this.b3 = 0.86650 * this.b3 + white * 0.3104856;
+            this.b4 = 0.55000 * this.b4 + white * 0.5329522;
+            this.b5 = -0.7616 * this.b5 - white * 0.0168980;
+            const pink = this.b0 + this.b1 + this.b2 + this.b3 + this.b4 + this.b5 + this.b6 + white * 0.5362;
+            this.b6 = white * 0.115926;
+            return pink * 0.11;
+          }
+        }
+
+        /**
+         * Generate a single brown noise sample
+         * Brown (Brownian/red) noise is the integral of white noise
+         * Uses a leaky integrator: output = prev * leak + white * step
+         * The leak factor (0.998) prevents DC buildup/clipping
+         * Results in -6 dB/octave rolloff (very bass-heavy)
+         * @param {boolean} useTarget - use target state variables for crossfading
+         */
+        generateBrown(useTarget) {
+          const white = this.generateWhite();
+          if (useTarget) {
+            // Leaky integrator: slowly decays to prevent runaway drift
+            this.tBrownState = (this.tBrownState + (white * 0.02)) * 0.998;
+            return this.tBrownState * 8.0; // Scale up for audible volume
+          } else {
+            this.brownState = (this.brownState + (white * 0.02)) * 0.998;
+            return this.brownState * 8.0;
+          }
+        }
+
+        /**
+         * Generate sample for a given noise type
+         */
+        generateSample(type, useTarget) {
+          switch (type) {
+            case 0: return this.generateWhite();
+            case 1: return this.generatePink(useTarget);
+            case 2: return this.generateBrown(useTarget);
+            default: return 0;
+          }
+        }
+
+        /**
+         * Main audio processing callback
+         * Called by the audio system with 128-sample blocks
+         */
+        process(inputs, outputs, parameters) {
+          const output = outputs[0];
+          const numChannels = output.length;
+          const blockSize = output[0].length;
+
+          for (let i = 0; i < blockSize; i++) {
+            let sample;
+
+            if (this.isCrossfading) {
+              // Generate samples from both current and target noise types
+              const currentSample = this.generateSample(this.noiseType, false);
+              const targetSample = this.generateSample(this.targetType, true);
+
+              // Cosine crossfade for smooth equal-power transition
+              // cos curve prevents the volume dip that linear crossfade causes
+              const fadeOut = Math.cos(this.crossfade * Math.PI * 0.5);
+              const fadeIn = Math.sin(this.crossfade * Math.PI * 0.5);
+              sample = currentSample * fadeOut + targetSample * fadeIn;
+
+              this.crossfade += this.crossfadeRate;
+              if (this.crossfade >= 1.0) {
+                // Crossfade complete: adopt target as current
+                this.crossfade = 0;
+                this.isCrossfading = false;
+                this.noiseType = this.targetType;
+                // Copy target state to current state
+                this.b0=this.tb0; this.b1=this.tb1; this.b2=this.tb2;
+                this.b3=this.tb3; this.b4=this.tb4; this.b5=this.tb5; this.b6=this.tb6;
+                this.brownState = this.tBrownState;
+              }
+            } else {
+              sample = this.generateSample(this.noiseType, false);
+            }
+
+            // Write same sample to all channels (mono noise)
+            for (let ch = 0; ch < numChannels; ch++) {
+              output[ch][i] = sample;
+            }
+          }
+
+          return true; // Keep processor alive
+        }
+      }
+
+      registerProcessor('noise-processor', NoiseProcessor);
+    `;
+
+    // ============================================================
+    // MAIN APPLICATION
+    // ============================================================
+    class NoiseGeneratorApp {
+      constructor() {
+        // Audio state
+        this.audioCtx = null;
+        this.workletNode = null;
+        this.gainNode = null;
+        this.filterNode = null;
+        this.analyserNode = null;
+        this.isPlaying = false;
+        this.startTime = null;
+        this.elapsedInterval = null;
+
+        // Settings (defaults)
+        this.settings = {
+          noiseType: 'white',
+          volume: 50,
+          tone: 20000,
+          timer: 0
+        };
+
+        // Timer state
+        this.timerTimeout = null;
+        this.timerEnd = null;
+        this.timerInterval = null;
+
+        // Visualization
+        this.vizCanvas = null;
+        this.vizCtx = null;
+        this.animFrameId = null;
+        this.analyserData = null;
+
+        // Load saved settings
+        this.loadSettings();
+
+        // Initialize UI
+        this.initUI();
+        this.initVisualization();
+        this.applySettings();
+
+        // Keyboard shortcuts
+        this.initKeyboard();
+      }
+
+      // ---- Settings Persistence ----
+
+      loadSettings() {
+        try {
+          const saved = localStorage.getItem('noiseGenSettings');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            this.settings = { ...this.settings, ...parsed };
+          }
+        } catch (e) {
+          // Silently ignore localStorage errors
+        }
+      }
+
+      saveSettings() {
+        try {
+          localStorage.setItem('noiseGenSettings', JSON.stringify(this.settings));
+        } catch (e) {}
+      }
+
+      // ---- UI Initialization ----
+
+      initUI() {
+        // Play button
+        this.playBtn = document.getElementById('playBtn');
+        this.playIcon = document.getElementById('playIcon');
+        this.playLabel = document.getElementById('playLabel');
+        this.statusDot = document.getElementById('statusDot');
+        this.playBtn.addEventListener('click', () => this.togglePlay());
+
+        // Noise type buttons
+        this.noiseButtons = document.querySelectorAll('.noise-btn');
+        this.noiseButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const type = btn.dataset.type;
+            this.setNoiseType(type);
+          });
+        });
+
+        // Volume slider
+        this.volumeSlider = document.getElementById('volumeSlider');
+        this.volumeValue = document.getElementById('volumeValue');
+        this.volumeSlider.addEventListener('input', (e) => {
+          this.settings.volume = parseInt(e.target.value);
+          this.updateVolume();
+          this.updateSliderFill(e.target);
+          this.saveSettings();
+        });
+
+        // Tone slider
+        this.toneSlider = document.getElementById('toneSlider');
+        this.toneValue = document.getElementById('toneValue');
+        this.toneSlider.addEventListener('input', (e) => {
+          this.settings.tone = parseInt(e.target.value);
+          this.updateTone();
+          this.updateSliderFill(e.target);
+          this.saveSettings();
+        });
+
+        // Timer
+        this.timerSelect = document.getElementById('timerSelect');
+        this.timerDisplay = document.getElementById('timerDisplay');
+        this.timerSelect.addEventListener('change', (e) => {
+          this.settings.timer = parseInt(e.target.value);
+          this.setupTimer();
+          this.saveSettings();
+        });
+
+        // Elapsed time display
+        this.elapsedTimeEl = document.getElementById('elapsedTime');
+      }
+
+      applySettings() {
+        // Apply loaded settings to UI
+        this.volumeSlider.value = this.settings.volume;
+        this.volumeValue.textContent = this.settings.volume + '%';
+        this.updateSliderFill(this.volumeSlider);
+
+        this.toneSlider.value = this.settings.tone;
+        this.toneValue.textContent = this.formatFrequency(this.settings.tone);
+        this.updateSliderFill(this.toneSlider);
+
+        this.timerSelect.value = this.settings.timer;
+
+        // Set active noise button
+        this.noiseButtons.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.type === this.settings.noiseType);
+        });
+      }
+
+      updateSliderFill(slider) {
+        const min = parseFloat(slider.min);
+        const max = parseFloat(slider.max);
+        const val = parseFloat(slider.value);
+        const pct = ((val - min) / (max - min)) * 100;
+        slider.style.setProperty('--fill', pct + '%');
+      }
+
+      formatFrequency(hz) {
+        if (hz >= 1000) {
+          return (hz / 1000).toFixed(hz >= 10000 ? 0 : 1).replace(/\.0$/, '') + ' kHz';
+        }
+        return hz.toLocaleString() + ' Hz';
+      }
+
+      formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      }
+
+      // ---- Audio Engine ----
+
+      async initAudio() {
+        // Create AudioContext (handles autoplay restrictions via user gesture)
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Load AudioWorklet processor from Blob URL
+        const blob = new Blob([workletProcessorCode], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+        await this.audioCtx.audioWorklet.addModule(url);
+        URL.revokeObjectURL(url);
+
+        // Create noise generator worklet node
+        this.workletNode = new AudioWorkletNode(this.audioCtx, 'noise-processor');
+
+        // Gain node for volume control with smooth ramping
+        this.gainNode = this.audioCtx.createGain();
+        this.gainNode.gain.value = 0; // Start at 0 for fade-in
+
+        // BiquadFilter for tone shaping (low-pass filter)
+        // Allows user to darken/muffle the noise for a warmer sound
+        this.filterNode = this.audioCtx.createBiquadFilter();
+        this.filterNode.type = 'lowpass';
+        this.filterNode.frequency.value = this.settings.tone;
+        this.filterNode.Q.value = 0.7071; // Butterworth (flat passband)
+
+        // Analyser node for visualization
+        this.analyserNode = this.audioCtx.createAnalyser();
+        this.analyserNode.fftSize = 2048;
+        this.analyserNode.smoothingTimeConstant = 0.8;
+        this.analyserData = new Uint8Array(this.analyserNode.frequencyBinCount);
+
+        // Signal chain: Worklet -> Filter -> Gain -> Analyser -> Destination
+        this.workletNode.connect(this.filterNode);
+        this.filterNode.connect(this.gainNode);
+        this.gainNode.connect(this.analyserNode);
+        this.analyserNode.connect(this.audioCtx.destination);
+
+        // Set initial noise type
+        const typeMap = { white: 0, pink: 1, brown: 2 };
+        this.workletNode.port.postMessage({
+          type: 'setNoiseType',
+          value: typeMap[this.settings.noiseType] || 0
+        });
+      }
+
+      async togglePlay() {
+        if (this.isPlaying) {
+          await this.stop();
+        } else {
+          await this.play();
+        }
+      }
+
+      async play() {
+        try {
+          if (!this.audioCtx) {
+            await this.initAudio();
+          }
+
+          // Resume context if suspended (browser autoplay policy)
+          if (this.audioCtx.state === 'suspended') {
+            await this.audioCtx.resume();
+          }
+
+          // Smooth fade in over 100ms to avoid click
+          const now = this.audioCtx.currentTime;
+          const targetGain = this.settings.volume / 100;
+          this.gainNode.gain.cancelScheduledValues(now);
+          this.gainNode.gain.setValueAtTime(0, now);
+          this.gainNode.gain.linearRampToValueAtTime(targetGain, now + 0.1);
+
+          this.isPlaying = true;
+          this.startTime = Date.now();
+          this.updatePlayButton();
+          this.startElapsedTimer();
+          this.startVisualization();
+          this.setupTimer();
+        } catch (err) {
+          console.error('Audio playback error:', err);
+        }
+      }
+
+      async stop() {
+        if (!this.audioCtx || !this.isPlaying) return;
+
+        // Smooth fade out over 150ms to avoid click
+        const now = this.audioCtx.currentTime;
+        this.gainNode.gain.cancelScheduledValues(now);
+        this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+        this.gainNode.gain.linearRampToValueAtTime(0, now + 0.15);
+
+        // Wait for fade out, then suspend
+        await new Promise(resolve => setTimeout(resolve, 170));
+        await this.audioCtx.suspend();
+
+        this.isPlaying = false;
+        this.updatePlayButton();
+        this.stopElapsedTimer();
+        this.clearTimer();
+      }
+
+      updatePlayButton() {
+        if (this.isPlaying) {
+          this.playBtn.className = 'playing';
+          this.playIcon.textContent = '⏹';
+          this.playLabel.textContent = 'Stop';
+          this.statusDot.className = 'status-dot active';
+        } else {
+          this.playBtn.className = 'stopped';
+          this.playIcon.textContent = '▶';
+          this.playLabel.textContent = 'Play';
+          this.statusDot.className = 'status-dot inactive';
+        }
+      }
+
+      // ---- Parameter Updates ----
+
+      setNoiseType(type) {
+        this.settings.noiseType = type;
+        this.noiseButtons.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.type === type);
+        });
+
+        // Send crossfade message to worklet
+        if (this.workletNode) {
+          const typeMap = { white: 0, pink: 1, brown: 2 };
+          this.workletNode.port.postMessage({
+            type: 'setNoiseType',
+            value: typeMap[type]
+          });
+        }
+
+        this.saveSettings();
+      }
+
+      updateVolume() {
+        this.volumeValue.textContent = this.settings.volume + '%';
+        if (this.gainNode && this.isPlaying) {
+          // Smooth ramp to avoid zipper noise
+          const now = this.audioCtx.currentTime;
+          this.gainNode.gain.cancelScheduledValues(now);
+          this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+          this.gainNode.gain.linearRampToValueAtTime(
+            this.settings.volume / 100,
+            now + 0.05
+          );
+        }
+      }
+
+      updateTone() {
+        this.toneValue.textContent = this.formatFrequency(this.settings.tone);
+        if (this.filterNode) {
+          // Smooth frequency ramp for seamless tone changes
+          const now = this.audioCtx.currentTime;
+          this.filterNode.frequency.cancelScheduledValues(now);
+          this.filterNode.frequency.setValueAtTime(this.filterNode.frequency.value, now);
+          this.filterNode.frequency.exponentialRampToValueAtTime(
+            Math.max(this.settings.tone, 20), // Prevent 0 (invalid for exponential ramp)
+            now + 0.05
+          );
+        }
+      }
+
+      // ---- Timer ----
+
+      setupTimer() {
+        this.clearTimer();
+        if (this.settings.timer > 0 && this.isPlaying) {
+          const ms = this.settings.timer * 60 * 1000;
+          this.timerEnd = Date.now() + ms;
+
+          this.timerTimeout = setTimeout(() => {
+            this.stop();
+            this.timerDisplay.textContent = '';
+          }, ms);
+
+          this.timerInterval = setInterval(() => {
+            const remaining = Math.max(0, this.timerEnd - Date.now());
+            if (remaining <= 0) {
+              this.timerDisplay.textContent = '';
+              clearInterval(this.timerInterval);
+            } else {
+              const mins = Math.floor(remaining / 60000);
+              const secs = Math.floor((remaining % 60000) / 1000);
+              this.timerDisplay.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
+            }
+          }, 1000);
+        }
+      }
+
+      clearTimer() {
+        if (this.timerTimeout) { clearTimeout(this.timerTimeout); this.timerTimeout = null; }
+        if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+        this.timerDisplay.textContent = '';
+      }
+
+      // ---- Elapsed Time ----
+
+      startElapsedTimer() {
+        this.stopElapsedTimer();
+        this.elapsedInterval = setInterval(() => {
+          if (this.startTime) {
+            const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+            this.elapsedTimeEl.textContent = this.formatTime(elapsed);
+          }
+        }, 1000);
+      }
+
+      stopElapsedTimer() {
+        if (this.elapsedInterval) {
+          clearInterval(this.elapsedInterval);
+          this.elapsedInterval = null;
+        }
+      }
+
+      // ---- Visualization ----
+
+      initVisualization() {
+        this.vizCanvas = document.getElementById('vizCanvas');
+        this.vizCtx = this.vizCanvas.getContext('2d');
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+        // Draw idle state
+        this.drawIdleViz();
+      }
+
+      resizeCanvas() {
+        const rect = this.vizCanvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        this.vizCanvas.width = rect.width * dpr;
+        this.vizCanvas.height = rect.height * dpr;
+        this.vizCtx.scale(dpr, dpr);
+        this.vizWidth = rect.width;
+        this.vizHeight = rect.height;
+        if (!this.isPlaying) this.drawIdleViz();
+      }
+
+      drawIdleViz() {
+        const ctx = this.vizCtx;
+        const w = this.vizWidth;
+        const h = this.vizHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        // Draw flat line
+        ctx.beginPath();
+        ctx.moveTo(0, h / 2);
+        ctx.lineTo(w, h / 2);
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      startVisualization() {
+        if (this.animFrameId) cancelAnimationFrame(this.animFrameId);
+        const draw = () => {
+          this.drawVisualization();
+          if (this.isPlaying) {
+            this.animFrameId = requestAnimationFrame(draw);
+          }
+        };
+        draw();
+      }
+
+      drawVisualization() {
+        if (!this.analyserNode || !this.analyserData) return;
+
+        const ctx = this.vizCtx;
+        const w = this.vizWidth;
+        const h = this.vizHeight;
+
+        // Get waveform data from analyser
+        this.analyserNode.getByteTimeDomainData(this.analyserData);
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Color based on noise type
+        const colors = {
+          white: { line: '#a78bfa', fill: 'rgba(167, 139, 250, 0.08)', glow: 'rgba(167, 139, 250, 0.5)' },
+          pink: { line: '#f472b6', fill: 'rgba(244, 114, 182, 0.08)', glow: 'rgba(244, 114, 182, 0.5)' },
+          brown: { line: '#d97706', fill: 'rgba(217, 119, 6, 0.08)', glow: 'rgba(217, 119, 6, 0.5)' }
+        };
+        const c = colors[this.settings.noiseType] || colors.white;
+
+        const bufLen = this.analyserData.length;
+        const sliceWidth = w / bufLen;
+
+        // Draw filled area
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        for (let i = 0; i < bufLen; i++) {
+          const v = this.analyserData[i] / 128.0;
+          const y = (v * h) / 2;
+          const x = i * sliceWidth;
+          if (i === 0) ctx.lineTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, h);
+        ctx.closePath();
+        ctx.fillStyle = c.fill;
+        ctx.fill();
+
+        // Draw waveform line with glow
+        ctx.save();
+        ctx.shadowColor = c.glow;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        for (let i = 0; i < bufLen; i++) {
+          const v = this.analyserData[i] / 128.0;
+          const y = (v * h) / 2;
+          const x = i * sliceWidth;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = c.line;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw center reference line
+        ctx.beginPath();
+        ctx.moveTo(0, h / 2);
+        ctx.lineTo(w, h / 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // ---- Keyboard Shortcuts ----
+
+      initKeyboard() {
+        document.addEventListener('keydown', (e) => {
+          // Ignore if user is typing in an input/select
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+          switch (e.code) {
+            case 'Space':
+              e.preventDefault();
+              this.togglePlay();
+              break;
+            case 'Digit1':
+            case 'Numpad1':
+              this.setNoiseType('white');
+              break;
+            case 'Digit2':
+            case 'Numpad2':
+              this.setNoiseType('pink');
+              break;
+            case 'Digit3':
+            case 'Numpad3':
+              this.setNoiseType('brown');
+              break;
+          }
+        });
+      }
+    }
+
+    // ---- Initialize App ----
+    const app = new NoiseGeneratorApp();
+  </script>
+</body>
+</html>
