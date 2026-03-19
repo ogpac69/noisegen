@@ -1,101 +1,115 @@
-🔊 NoiseGen — Frequency Playground
+🔊 NoiseGen - Frequency Generator
 
-Generate. Experiment. Annoy your neighbors scientifically.
+A clean, browser-based frequency generator built using the Web Audio API for real-time sound synthesis, testing, and experimentation.
 
-A minimal yet powerful browser-based frequency generator built for people who like to hear numbers instead of just reading them.
-
-🔗 Live Demo: https://ogpac69.github.io/noisegen/
-
-📦 Source Code: https://github.com/ogpac69/noisegen
+NoiseGen • Web Audio • JavaScript
 
 ✨ Features
-🎛 Core Controls
+Core Audio Features
 
-Real-time frequency generation
+🔊 Generate pure sine wave tones in real-time
+🎚️ Adjustable frequency control
+▶️ Start / Stop playback instantly
+⚡ Low-latency audio output
 
-Adjustable tone output
+Sound & Control
 
-Instant audio feedback (no reload nonsense)
+🎧 Smooth continuous tone generation
+📈 Real-time frequency updates without reload
+🔇 Immediate stop to prevent unwanted noise
 
-🔊 Audio Engine
+Lightweight Design
 
-Built using Web Audio API
+⚡ No frameworks or heavy dependencies
+🌐 Runs entirely in the browser
+📱 Works on desktop and mobile
 
-Clean sine wave generation
+🧠 Use Cases
 
-Low latency playback
-
-⚡ Lightweight
-
-No bloated frameworks
-
-Runs directly in browser
-
-Opens faster than your attention span disappears
-
-🧠 What is this for?
-
-🎧 Testing headphones & speakers
-
-🧪 Experimenting with sound frequencies
-
-🧘 Focus / meditation tones (if you’re into that)
-
-🔬 Learning how pitch actually works
-
-The Pomodoro crowd tracks time.
-You? You generate vibrations in the air like a civilized human.
-
-⚙️ How It Works
-
-At its core, NoiseGen uses the browser’s Web Audio API to create oscillator nodes.
-
-Frequency → controls pitch
-
-Oscillator → generates waveform
-
-Output → straight to your ears (good luck)
-
-No server. No backend. Just raw sound synthesis.
+🎧 Test headphones, speakers, and audio setups
+🧪 Experiment with sound frequencies
+🧘 Create focus or meditation tones
+📚 Learn how pitch and frequency relate
 
 🚀 Getting Started
-Run Locally
+Prerequisites
+
+Any modern browser (Chrome, Edge, Firefox)
+
+Installation
+
+Clone the repository:
+
 git clone https://github.com/ogpac69/noisegen.git
+
+Open the project:
+
 cd noisegen
 open index.html
 
-Or double-click it like a sane person.
+Or just open the file manually like it’s 2005 and life was simpler.
 
-⚠️ Warning (read this or regret it)
+🛠️ Technical Stack
 
-High frequencies can hurt your ears
+JavaScript - Core logic
+Web Audio API - Sound generation
+HTML - Structure
+CSS - Styling
 
-Loud volume can destroy your speakers
+⚙️ How It Works
 
-You will try 20,000 Hz just to “see what happens”
+NoiseGen uses the Web Audio API OscillatorNode to generate sound waves.
 
-Don’t.
+Frequency → Controls pitch of the tone
 
-🧪 Future Upgrades
+Oscillator → Produces waveform (sine)
+
+Audio Context → Handles playback
+
+All processing happens locally in your browser. No server, no latency excuses.
+
+🎨 Customization
+Changing Default Frequency
+
+Modify your JavaScript file:
+
+oscillator.frequency.value = 440; // Default frequency (Hz)
+Adding More Controls
+
+You can extend the UI to include:
+
+Volume (GainNode)
+
+Waveform selection (sine, square, sawtooth)
+
+Frequency sliders
+
+⚠️ Safety Warning
+
+High frequencies can damage hearing
+
+Loud output can damage speakers
+
+Avoid prolonged exposure to extreme tones
+
+You only get one pair of ears. Try not to speedrun losing them.
+
+🔮 Future Enhancements
 
 🌊 White / Pink / Brown noise modes
+📈 Frequency sweep (auto increase/decrease)
+🎚️ Volume control (gain adjustment)
+🎛️ Multiple waveform support
+💾 Save presets
 
-📈 Frequency sweep (auto glide)
+📄 License
 
-🎚 Volume envelopes
-
-💾 Preset saving
-
-🎛 Multiple waveform types (square, sawtooth, etc.)
-
-📜 License
-
-MIT — do whatever you want. Break it. Improve it. Ship it.
+MIT License — free to use, modify, and break.
 
 🧊 Final Note
 
-This project does one thing:
+This project does one thing very well:
 
 Turns numbers into sound.
 
-What you do with that power is between you and your eardrums.
+If that doesn’t impress you, you probably haven’t tried 20Hz at max volume yet.
