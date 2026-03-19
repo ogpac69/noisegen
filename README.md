@@ -1,68 +1,101 @@
-🔊 NoiseGen – Frequency Generator
+🔊 NoiseGen — Frequency Playground
 
-A simple, browser-based frequency generator designed for experimenting with sound, focus, and audio testing.
+Generate. Experiment. Annoy your neighbors scientifically.
+
+A minimal yet powerful browser-based frequency generator built for people who like to hear numbers instead of just reading them.
 
 🔗 Live Demo: https://ogpac69.github.io/noisegen/
 
-📦 Repo: https://github.com/ogpac69/noisegen
+📦 Source Code: https://github.com/ogpac69/noisegen
 
-🚀 Features
+✨ Features
+🎛 Core Controls
 
-🎚️ Generate pure tones at custom frequencies
+Real-time frequency generation
 
-🔊 Real-time audio playback in the browser
+Adjustable tone output
 
-⚡ Lightweight and fast (no heavy libraries)
+Instant audio feedback (no reload nonsense)
 
-🎧 Useful for sound testing, hearing checks, and experiments
+🔊 Audio Engine
 
-🧠 Can be used for focus tones or ambient frequency exploration
+Built using Web Audio API
 
-🛠️ Use Cases
+Clean sine wave generation
 
-Test speakers, headphones, and audio systems
+Low latency playback
 
-Experiment with different sound frequencies
+⚡ Lightweight
 
-Generate tones for focus or relaxation
+No bloated frameworks
 
-Learn how frequency and pitch relate in real-time
+Runs directly in browser
+
+Opens faster than your attention span disappears
+
+🧠 What is this for?
+
+🎧 Testing headphones & speakers
+
+🧪 Experimenting with sound frequencies
+
+🧘 Focus / meditation tones (if you’re into that)
+
+🔬 Learning how pitch actually works
+
+The Pomodoro crowd tracks time.
+You? You generate vibrations in the air like a civilized human.
 
 ⚙️ How It Works
 
-This project uses the Web Audio API to generate sound waves directly in the browser.
-Frequencies are controlled dynamically, allowing real-time adjustments without reloading or processing delays.
+At its core, NoiseGen uses the browser’s Web Audio API to create oscillator nodes.
 
-📦 Tech Stack
+Frequency → controls pitch
 
-HTML
+Oscillator → generates waveform
 
-CSS
+Output → straight to your ears (good luck)
 
-JavaScript (Web Audio API)
+No server. No backend. Just raw sound synthesis.
 
-🧪 How to Run Locally
+🚀 Getting Started
+Run Locally
 git clone https://github.com/ogpac69/noisegen.git
 cd noisegen
 open index.html
 
-Or just double-click the file like a normal human.
+Or double-click it like a sane person.
 
-⚠️ Disclaimer
+⚠️ Warning (read this or regret it)
 
-High frequencies and loud volumes can damage your hearing.
-Use responsibly and don’t blast your ears like you’re testing a jet engine.
+High frequencies can hurt your ears
+
+Loud volume can destroy your speakers
+
+You will try 20,000 Hz just to “see what happens”
+
+Don’t.
+
+🧪 Future Upgrades
+
+🌊 White / Pink / Brown noise modes
+
+📈 Frequency sweep (auto glide)
+
+🎚 Volume envelopes
+
+💾 Preset saving
+
+🎛 Multiple waveform types (square, sawtooth, etc.)
 
 📜 License
 
-MIT License – do whatever you want, just don’t blame the project when your ears start ringing.
+MIT — do whatever you want. Break it. Improve it. Ship it.
 
-✨ Future Ideas
+🧊 Final Note
 
-Add white / pink / brown noise modes
+This project does one thing:
 
-Frequency sweeps (auto ramp up/down)
+Turns numbers into sound.
 
-Volume envelope control
-
-Save presets
+What you do with that power is between you and your eardrums.
